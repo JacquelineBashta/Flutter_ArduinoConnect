@@ -32,12 +32,6 @@
       "languageVersion": "2.12"
     },
     {
-      "name": "csv",
-      "rootUri": "file:///C:/Users/Arsany/AppData/Local/Pub/Cache/hosted/pub.dev/csv-5.0.1",
-      "packageUri": "lib/",
-      "languageVersion": "2.12"
-    },
-    {
       "name": "cupertino_icons",
       "rootUri": "file:///C:/Users/Arsany/AppData/Local/Pub/Cache/hosted/pub.dev/cupertino_icons-1.0.5",
       "packageUri": "lib/",
@@ -100,12 +94,6 @@
     {
       "name": "functional_data",
       "rootUri": "file:///C:/Users/Arsany/AppData/Local/Pub/Cache/hosted/pub.dev/functional_data-1.0.0",
-      "packageUri": "lib/",
-      "languageVersion": "2.12"
-    },
-    {
-      "name": "intl",
-      "rootUri": "file:///C:/Users/Arsany/AppData/Local/Pub/Cache/hosted/pub.dev/intl-0.18.0",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },
@@ -266,18 +254,6 @@
       "languageVersion": "2.18"
     },
     {
-      "name": "syncfusion_flutter_charts",
-      "rootUri": "file:///C:/Users/Arsany/AppData/Local/Pub/Cache/hosted/pub.dev/syncfusion_flutter_charts-20.4.50",
-      "packageUri": "lib/",
-      "languageVersion": "2.17"
-    },
-    {
-      "name": "syncfusion_flutter_core",
-      "rootUri": "file:///C:/Users/Arsany/AppData/Local/Pub/Cache/hosted/pub.dev/syncfusion_flutter_core-20.4.50",
-      "packageUri": "lib/",
-      "languageVersion": "2.17"
-    },
-    {
       "name": "term_glyph",
       "rootUri": "file:///C:/Users/Arsany/AppData/Local/Pub/Cache/hosted/pub.dev/term_glyph-1.2.1",
       "packageUri": "lib/",
@@ -314,7 +290,7 @@
       "languageVersion": "2.18"
     }
   ],
-  "generated": "2023-02-22T17:25:02.840421Z",
+  "generated": "2023-02-22T18:50:25.743423Z",
   "generator": "pub",
   "generatorVersion": "2.19.1"
 }

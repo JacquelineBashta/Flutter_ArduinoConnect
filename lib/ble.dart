@@ -1,4 +1,3 @@
-import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
@@ -8,10 +7,6 @@ import 'dart:io' show Platform;
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:flow_draw/card.dart';
-import 'package:flow_draw/chart.dart';
-import 'package:syncfusion_flutter_charts/charts.dart';
-import 'dart:math' as math;
-import 'package:csv/csv.dart';
 
 class BluetoothPage extends StatefulWidget {
   @override
@@ -20,9 +15,6 @@ class BluetoothPage extends StatefulWidget {
 
 class _BluetoothPageState extends State<BluetoothPage> {
     final double gForce = 9.81;
-    ChartData _accXData = ChartData();
-    ChartData _accYData = ChartData();
-    ChartData _accZData = ChartData();
 
     final flutterReactiveBle = FlutterReactiveBle();
     List<DiscoveredDevice> devicesFound = [];
@@ -45,13 +37,16 @@ class _BluetoothPageState extends State<BluetoothPage> {
     final Uuid motionAccGyroCharacteristic = Uuid.parse("19b10000-4001-537e-4f6c-d104768a1214");
     final Uuid motionOriGravCharacteristic = Uuid.parse("19b10000-5001-537e-4f6c-d104768a1214");
 
+    TextEditingController _textFieldController = TextEditingController();
+    late String codeDialog ;
+    late String valueText = "dataset_drink_100ml_00";
+
+    ScrollController _scrollController = ScrollController();
+
     List<List<int>> recordedData = [];
 
     @override
     void initState() {
-      _accXData.fill();
-      _accYData.fill();
-      _accZData.fill();
       _startScan();
       super.initState();
     }
@@ -75,7 +70,7 @@ class _BluetoothPageState extends State<BluetoothPage> {
       } else if (Platform.isIOS) {
         permGranted = true;
       }
-      // Main scanning logic happens here ⤵️
+      // Main scanning logic happens here
       if (permGranted) {
         _scanStream = flutterReactiveBle
             .scanForDevices(withServices: [serviceUuid]).listen((device) {
@@ -153,30 +148,23 @@ class _BluetoothPageState extends State<BluetoothPage> {
             characteristicId: motionAccGyroCharacteristic,
             deviceId: _ubiqueDevice.id);
         flutterReactiveBle.subscribeToCharacteristic(_qualifyMotionAccGyroCharacteristic).listen((data) {
-          //_connected?_accXData.updateDataSource(data[0] ~/ gForce):print("Disconnected");
-          //_connected?_accYData.updateDataSource(data[1] ~/ gForce):print("Disconnected");
-          //_connected?_accZData.updateDataSource(data[2] ~/ gForce):print("Disconnected");
-
-          List<int> defaultList = List.generate(13, (i) => 0);
 
           var dataRec = _convert_ble_data2int(data);
-          if(recordedData.length >=  dataRec[0]) {
-            // time_count start with 1
-            print("found TBD");
-            //recordedData[dataRec[0]] = dataRec.sublist(1,7);
+
+          final list_index = recordedData.indexWhere((element) => element[0] == dataRec[0]);
+          if (list_index != -1) {
+            recordedData[list_index].replaceRange(1,7, List<int>.from(dataRec.sublist(1,7)));
           }
           else{
-            print("data recorded");
-
+            List<int> defaultList = List.generate(13, (i) => 0);
             defaultList.replaceRange(0,7, List<int>.from(dataRec) );
             setState(() {
               recordedData.add(defaultList);
             });
           }
 
-
           }, onError: (dynamic error) {
-          print("error reading accelerometerCharacteristic");
+          print("error reading motionAccGyroCharacteristic");
         });
 
         _qualifyMotionOriGravCharacteristic = QualifiedCharacteristic(
@@ -185,20 +173,25 @@ class _BluetoothPageState extends State<BluetoothPage> {
             deviceId: _ubiqueDevice.id);
 
         flutterReactiveBle.subscribeToCharacteristic(_qualifyMotionOriGravCharacteristic).listen((data) {
-          //save to file
-          //print("*******************");
-          //print("data= $data");
 
           var dataRec = _convert_ble_data2int(data);
-          //if(dataRec[0] in recordedData indexes) {
-          //  recordedData[dataRec[0]] = dataRec[7:12];
-          //}
-          //else{
-          //  recordedData.add([dataRec[0] , 0,0,0,0,0,0 , dataRec[7:12]);
-          //}
+          final list_index = recordedData.indexWhere((element) => element[0] == dataRec[0]);
+          if (list_index != -1) {
+            recordedData[list_index].replaceRange(7,13, List<int>.from(dataRec.sublist(1,7)));
+          }
+          else{
+            //  recordedData.add([dataRec[0] , 0,0,0,0,0,0 , dataRec[7:12]);
+            List<int> defaultList = List.generate(13, (i) => 0);
+            defaultList[0]=dataRec[0];
+            defaultList.replaceRange(7,13, List<int>.from(dataRec.sublist(1,7)));
+
+            setState(() {
+              recordedData.add(defaultList);
+            });
+          }
 
         }, onError: (dynamic error) {
-          print("error reading motionCharacteristic");
+          print("error reading motionOriGravCharacteristic");
         }) ;
 
       }
@@ -216,7 +209,6 @@ class _BluetoothPageState extends State<BluetoothPage> {
 
         value = dataList[i] + 256 * dataList[i+1] ;
         if (value > 32767 && i!=0) {
-          print("i :  $i");
           value = (value - 32768 * 2);
         }
         allVal.add(value);
@@ -227,62 +219,111 @@ class _BluetoothPageState extends State<BluetoothPage> {
     }
 
     _recordData() async {
-
-      Directory? appDocumentsDirectory = await getExternalStorageDirectory(); // 1
-      String? appDocumentsPath = appDocumentsDirectory?.path; // 2
-
-      if (appDocumentsPath != null) {
-        print('File path: $appDocumentsPath');
-        String filePath = '$appDocumentsPath/tempData.csv'; // 3
-        File file = File(filePath);
-
-        //file.writeAsString(
-        //    "time,attitude_roll,attitude_pitch,attitude_yaw,gravity_x,gravity_y,gravity_z,rotationRate_x,rotationRate_y,rotationRate_z,userAcceleration_x,userAcceleration_y,userAcceleration_z"); // 2
-
-        // convert rows to String and write as csv file
-        //String csv = const ListToCsvConverter().convert(recordedData);
-        String csv ="";
-        print("recordedData : $recordedData");
-        for(List<int> data in recordedData){
-          csv += data.join(', ');
-          csv += "\n";
-        }
-
-        print("csv : $csv");
-        file.writeAsString(csv);
-        //String fileContent = await file.readAsString(); // 2
-        //print('File Content: $fileContent');
-        ///data/user/0/com.example.flow_draw/app_flutter
-        return null;
-      }
+      _readCharacteristics();
     }
 
     _stopRecordData() async {
       _disconnect(); // to reset time_count in Nicla
 
-      // code for saving data to be handled here!
-      _recordData();
+      if (recordedData.isNotEmpty) {
+        // clean up data
+        recordedData.removeAt(recordedData.length - 1);
+        recordedData.removeAt(0);
+        recordedData.removeAt(1);
+        recordedData.removeAt(2);
+        recordedData.removeAt(3);
+        recordedData.removeAt(4);
+      }
 
+      // user enter file name
+      _displayTextInputDialog(context);
     }
+
+    _saveData() async {
+      String fileName = valueText;
+
+      // Save to CSV
+      Directory? appDocumentsDirectory = await getExternalStorageDirectory(); // 1
+      String? appDocumentsPath = appDocumentsDirectory?.path; // 2
+
+      if (appDocumentsPath != null) {
+        print('File path: $appDocumentsPath');
+        String filePath = '$appDocumentsPath/$fileName.csv'; // 3
+        File file = File(filePath);
+
+        String csv = "time,attitude_roll,attitude_pitch,attitude_yaw,gravity_x,gravity_y,gravity_z,rotationRate_x,rotationRate_y,rotationRate_z,userAcceleration_x,userAcceleration_y,userAcceleration_z";
+
+        for(List<int> data in recordedData){
+          csv += "\n";
+          csv += data.join(', ');
+        }
+        file.writeAsString(csv);
+
+        //print("csv : $csv");
+        //String fileContent = await file.readAsString(); // 2
+        //print('File Content: $fileContent');
+        return null;
+      }
+    }
+
+    Future<void> _displayTextInputDialog(BuildContext context) {
+      return showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text('Enter CSV name'),
+              content: TextField(
+                onChanged: (value) {
+                  setState(() {
+                    valueText = value;
+                  });
+                },
+                controller: _textFieldController,
+                decoration: InputDecoration(hintText: "dataset_drink_100ml_00"),
+              ),
+              actions: <Widget>[
+                ElevatedButton(
+                  child: Text('CANCEL'),
+                  onPressed: () {
+                    setState(() {
+                      Navigator.pop(context);
+                    });
+                  },
+                ),
+                ElevatedButton(
+                  child: Text('OK'),
+                  onPressed: () {
+                    setState(() {
+                      codeDialog = valueText;
+                      Navigator.pop(context);
+                    });
+                    _saveData();
+                  },
+                ),
+
+              ],
+            );
+          });
+    }
+
 
     @override
     Widget build(BuildContext context) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(_scrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.fastOutSlowIn);
+        }
+      });
+
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: ElevatedButton.icon(
-                  onPressed: _startScan,
-                  icon: Icon(
-                    Icons.saved_search ,
-                    color: _scanStarted ? Colors.green:Colors.grey),
-                  label: const Text('Scan'),
-                ),
-              ),
+
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: ElevatedButton.icon(
@@ -299,14 +340,6 @@ class _BluetoothPageState extends State<BluetoothPage> {
                   icon: Icon(Icons.power_off,
                       color: _connected ? Colors.grey:Colors.red),
                   label: const Text('Disconnect'),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: ElevatedButton.icon(
-                  onPressed: _readCharacteristics,
-                  icon: const Icon(Icons.celebration_rounded),
-                  label: const Text('Graph'),
                 ),
               ),
             ],
@@ -334,7 +367,7 @@ class _BluetoothPageState extends State<BluetoothPage> {
             ],
           ),
 
-          const SizedBox(height: 10),
+          const SizedBox(height: 10 ),
 
           Expanded(
             child: ListView(
@@ -344,36 +377,22 @@ class _BluetoothPageState extends State<BluetoothPage> {
                 subtitle: Text("ID : " +device.id + "\n RSSI : " + device.rssi.toString()),
                 icon: Icon(Icons.bluetooth),
                 color: _connected ? Colors.lightBlueAccent : Colors.white30 ,
-
-
               )).toList(),
             ), // And rest of them in ListView
           ),
 
+          const SizedBox(height: 10),
+
           Expanded(
-          child:  SfCartesianChart(
-            series: <LineSeries<BaseData, int>>[
-              addSeries(_accXData),
-              addSeries(_accYData),
-              addSeries(_accZData),
-            ],
+            child: ListView(
+              children:
+              recordedData.map((dataList) => Text(
+                  dataList.toString()
+              )).toList(),
+            ), // And rest of them in ListView
           ),
-        ),
         ],
       );
-    }
-}
 
-/// Add series into the chart.
-LineSeries<BaseData, int> addSeries(ChartData _chartdata) {
-  return LineSeries<BaseData, int>(
-      onRendererCreated: (ChartSeriesController controller) {
-      // Assigning the controller to the _chartSeriesController.
-        _chartdata.chartSeriesController = controller;
-      },
-      // Binding the chartData to the dataSource of the line series.
-      dataSource: _chartdata.baseDataList,
-      xValueMapper: (BaseData data, _) => data.time,
-      yValueMapper: (BaseData data, _) => data.value,
-  );
+    }
 }
