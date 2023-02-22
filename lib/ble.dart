@@ -225,6 +225,23 @@ class _BluetoothPageState extends State<BluetoothPage> {
     _stopRecordData() async {
       _disconnect(); // to reset time_count in Nicla
 
+
+      // https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bhi260ap-ds000.pdf
+      // userAcceleration data
+      // float S8g = 4096.0;
+      // NewAcceleration = userAcceleration/S8g ;  //unit = g
+
+      // For rotationRate data (speed of rotation)
+      // float RFS2000 = 16.4;
+      // NewRotationRate = rotationRate/RFS2000 ;  //unit = deg/sec
+
+      // attitude "should be renamed to oriantation" (angle of rotation) unit = degree
+
+      // gravity ( gravitional force on sensor axis)
+      // float S8g = 4096.0;
+      // NewGravity = gravity/S8g ;  //unit = g
+
+
       if (recordedData.isNotEmpty) {
         // clean up data
         recordedData.removeAt(recordedData.length - 1);
@@ -251,7 +268,8 @@ class _BluetoothPageState extends State<BluetoothPage> {
         String filePath = '$appDocumentsPath/$fileName.csv'; // 3
         File file = File(filePath);
 
-        String csv = "time,attitude_roll,attitude_pitch,attitude_yaw,gravity_x,gravity_y,gravity_z,rotationRate_x,rotationRate_y,rotationRate_z,userAcceleration_x,userAcceleration_y,userAcceleration_z";
+        //OLD String csv = "time,attitude_roll,attitude_pitch,attitude_yaw,gravity_x,gravity_y,gravity_z,rotationRate_x,rotationRate_y,rotationRate_z,userAcceleration_x,userAcceleration_y,userAcceleration_z";
+        String csv = "time,rotationRate_x,rotationRate_y,rotationRate_z,userAcceleration_x,userAcceleration_y,userAcceleration_z,orientation_roll,orientation_pitch,orientation_yaw,gravity_x,gravity_y,gravity_z";
 
         for(List<int> data in recordedData){
           csv += "\n";
