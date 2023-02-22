@@ -1,0 +1,10 @@
+^C:\USERS\ARSANY\DESKTOP\MYDATA\PROJECTS\MOBILEAPP\FLOW_DRAW\BUILD\WINDOWS\CMAKEFILES\D1957022D4C5AF3F0BA703B41AD38A23\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SC:/Users/Arsany/Desktop/MyData/Projects/MobileApp/flow_draw/windows -BC:/Users/Arsany/Desktop/MyData/Projects/MobileApp/flow_draw/build/windows --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/Arsany/Desktop/MyData/Projects/MobileApp/flow_draw/build/windows/flow_draw.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
