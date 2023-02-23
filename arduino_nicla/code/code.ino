@@ -27,12 +27,13 @@ BLEService service(BLE_SENSE_UUID("0000"));
 
 BLEUnsignedIntCharacteristic versionCharacteristic(BLE_SENSE_UUID("1001"), BLERead);
 
-BLECharacteristic motionAccGyroCharacteristic(BLE_SENSE_UUID("4001"), BLERead | BLENotify, 7 * sizeof(short));  // Array of 6x 2 Bytes, XY
-BLECharacteristic motionOriGravCharacteristic(BLE_SENSE_UUID("5001"), BLERead | BLENotify, 7 * sizeof(short));  // Array of 6x 2 Bytes, XY
+BLECharacteristic motionAccGyroCharacteristic(BLE_SENSE_UUID("4001"), BLERead | BLENotify, 7 * sizeof(short));  // Array of 7x 2 Bytes, XY
+BLECharacteristic motionOriGravCharacteristic(BLE_SENSE_UUID("5001"), BLERead | BLENotify, 7 * sizeof(short));  // Array of 7x 2 Bytes, XY
 
 
 // String to calculate the local and device name
 String name;
+// counter to bind the data in both charactaristics to eachother
 short time_count = 1;
 
 SensorXYZ gyroscope(SENSOR_ID_GYRO);
@@ -40,10 +41,11 @@ SensorXYZ accelerometer(SENSOR_ID_LACC);
 SensorXYZ gravity(SENSOR_ID_GRA);
 SensorOrientation orientation(SENSOR_ID_ORI);
 
-void setup() {
+///////////// setup function //////////////
+void setup() 
+{
   Serial.begin(115200);
   //BHY2.debug(Serial);
-
   Serial.println("Start");
 
   nicla::begin();
@@ -57,7 +59,9 @@ void setup() {
   gravity.begin();
   orientation.begin();
 
-  if (!BLE.begin()) {
+
+  if (!BLE.begin()) 
+  {
     Serial.println("Failled to initialized BLE!");
 
     while (1)
@@ -72,10 +76,6 @@ void setup() {
   address.toUpperCase();
 
   name = "NiclaSenseME";
-  // name += address[address.length() - 5];
-  // name += address[address.length() - 4];
-  // name += address[address.length() - 2];
-  // name += address[address.length() - 1];
 
   Serial.print("name = ");
   Serial.println(name);
@@ -89,8 +89,7 @@ void setup() {
   service.addCharacteristic(motionAccGyroCharacteristic);
   service.addCharacteristic(motionOriGravCharacteristic);
 
-
-  // Disconnect event handler
+  // Define event handlers
   BLE.setEventHandler(BLEConnected, blePeripheralConnectHandler);
   BLE.setEventHandler(BLEDisconnected, blePeripheralDisconnectHandler);
 
@@ -100,60 +99,68 @@ void setup() {
   BLE.advertise();
 }
 
-void loop() {
-  static float dt_sec = 0.02;
+
+///////////// loop function //////////////
+// Main loop for updating characteristics
+void loop() 
+{
+  static float dt_sec = 0.02;  // sending rate 50HZ = 1sec/50 = 0.02 sec
   static auto lastCheck = millis();
 
   BLEDevice central = BLE.central();
   
   
-  if (millis() - lastCheck >= (dt_sec * 1000)) {
+  if (millis() - lastCheck >= (dt_sec * 1000)) // check if 20msec has passed to trigger re-send
+  {
 
     lastCheck = millis();
 
-    if (central.connected()) {
-
+    if (central.connected()) 
+    {
       BHY2.update();
-      
 
-      if (motionAccGyroCharacteristic.subscribed()) {
-
-        short motionValues[7] = {
+      if (motionAccGyroCharacteristic.subscribed()) // fill in AccGyroCharacteristic
+      {
+        short motionValues[7] = 
+        {
           time_count,
           gyroscope.x(),gyroscope.y(),gyroscope.z(),
           accelerometer.x(),accelerometer.y(),accelerometer.z()
         };
 
-
         motionAccGyroCharacteristic.writeValue(motionValues,sizeof(motionValues));
-
       }
 
-      if (motionOriGravCharacteristic.subscribed()) {
 
-        short motionValues[7] = {
+      if (motionOriGravCharacteristic.subscribed())  // fill in OriGravCharacteristic
+      {
+        short motionValues[7] = 
+        {
           time_count,
           orientation.pitch(), orientation.roll() ,orientation.heading(),
           gravity.x(),gravity.y(),gravity.z()
         };
 
-        
         motionOriGravCharacteristic.writeValue(motionValues, sizeof(motionValues));
       }
       
       time_count +=1;
-
     }
   }
 }
 
-void blePeripheralConnectHandler(BLEDevice central) {
+
+///////////// blePeripheralConnectHandler //////////////
+void blePeripheralConnectHandler(BLEDevice central) 
+{
   nicla::leds.setColor(green);
-  time_count = 1;
+  time_count = 1; // reset the counter 
 }
 
-void blePeripheralDisconnectHandler(BLEDevice central) {
+///////////// blePeripheralDisconnectHandler //////////////
+void blePeripheralDisconnectHandler(BLEDevice central) 
+{
   nicla::leds.setColor(red);
-  time_count = 1;
+  time_count = 1; // reset the counter 
 }
 
