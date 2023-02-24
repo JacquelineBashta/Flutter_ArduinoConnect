@@ -44,7 +44,7 @@ SensorOrientation orientation(SENSOR_ID_ORI);
 ///////////// setup function //////////////
 void setup() 
 {
-  Serial.begin(115200);
+  Serial.begin(9600); // serial baudrate
   //BHY2.debug(Serial);
   Serial.println("Start");
 
@@ -137,7 +137,7 @@ void loop()
         short motionValues[7] = 
         {
           time_count,
-          orientation.pitch(), orientation.roll() ,orientation.heading(),
+          orientation.roll(), orientation.pitch(), orientation.heading(),
           gravity.x(),gravity.y(),gravity.z()
         };
 
