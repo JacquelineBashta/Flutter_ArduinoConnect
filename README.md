@@ -2,7 +2,7 @@
 implementation of mobile app to be used to connect with Aurdino board via bluetooth
 
 ## Enviroment setup
-### Arduino UDE
+### Arduino IDE
 1. Install Aurduino IDE 2.0
         - provide access needed (Network)
 2. at the folder level of .\arduino_nicla
