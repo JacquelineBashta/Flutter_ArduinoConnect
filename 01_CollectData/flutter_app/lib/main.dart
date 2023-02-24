@@ -307,7 +307,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 });
               },
               controller: _textFieldController,
-              decoration: InputDecoration(hintText: "dataset_drink_100ml_00"),
+              decoration: InputDecoration(hintText: ""),
             ),
             actions: <Widget>[
               ElevatedButton(
