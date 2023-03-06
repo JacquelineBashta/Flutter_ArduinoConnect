@@ -21,3 +21,8 @@ tbd
 tbd
 
 ## Project Architecture
+
+## Matrial used
+
+1. [Deep Learning Models for Human Activity Recognition](https://machinelearningmastery.com/deep-learning-models-for-human-activity-recognition/)
+2. [Use Early Stopping to Halt the Training of Neural Networks At the Right Time](https://machinelearningmastery.com/how-to-stop-training-deep-neural-networks-at-the-right-time-using-early-stopping/)
