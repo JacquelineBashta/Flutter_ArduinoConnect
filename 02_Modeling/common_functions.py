@@ -102,10 +102,42 @@ def fe_roll_features(df,k):
         #feat_df.insert(j+4, f'{i}_rmax', feat_df[i].rolling(k).max())
         #feat_df.insert(j+5, f'{i}_rmin', feat_df[i].rolling(k).min())
         #feat_df.insert(j+6, f'{i}_squared', feat_df[i]**2)
-        j += 4
+        j += 4 
 
     # Dropping all rows where the lag overlapped two different subjects/trials.
     for i in range(k):
         feat_df = feat_df.drop([i])
     
     return feat_df
+
+
+
+def fe_segmentation(df):
+    window_size = 50    # time points per window
+
+    # Segment the time series data into non-overlapping windows
+    segments = []
+    for i in range(0, len(df) - window_size, window_size):
+        segment = df.iloc[i:i+window_size]
+        segments.append(segment)
+
+    # Extract features from the segmented data
+    features = []
+    for segment in segments:
+        # Example feature extraction: mean and standard deviation
+        feature = [segment['value'].mean(), segment['value'].std(), segment['value'].median()]
+        features.append(feature)
+
+    # Convert the features to a numpy array for further processing
+    features_array = np.asarray(features)
+     
+    return  features_array
+
+
+def pre_normalize_tanh(df):
+
+    m = np.mean(df, axis=0) # array([16.25, 26.25])
+    std = np.std(df, axis=0) # array([17.45530005, 22.18529919])
+
+    data = 0.5 * (np.tanh(0.01 * ((df - m) / std)) + 1)
+    return data
