@@ -16,8 +16,8 @@ SPLIT_T_RATIO = 0.7
 NUM_NO_FEAT_COLUMN = 3
 
 # Define the fixed window length and the overlap ratio
-SMALLEST_DS_SIZE = 50
-SEQUENCE_SIZE = 50 # 1sec
+SMALLEST_DS_SIZE = 100
+SEQUENCE_SIZE = 100 # 1sec
 OVERLAP_PCT = 0.5  # 50% overlap ie 25 rows or 0.5sec
 
 
