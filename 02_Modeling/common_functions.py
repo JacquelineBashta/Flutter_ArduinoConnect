@@ -10,9 +10,19 @@ sns.set_style("darkgrid")
 # Get data file names
 START_T_COUNT = 0
 START_F_COUNT = 500
+
 SPLIT_T_RATIO = 0.7
 
 NUM_NO_FEAT_COLUMN = 3
+
+# Define the fixed window length and the overlap ratio
+SMALLEST_DS_SIZE = 50
+SEQUENCE_SIZE = 50 # 1sec
+OVERLAP_PCT = 0.5  # 50% overlap ie 25 rows or 0.5sec
+
+
+# Calculate the step size for the sliding window
+step_size = int(SEQUENCE_SIZE * (1 - OVERLAP_PCT))
 
 
 def data_split_TrainTest(df):
@@ -38,7 +48,14 @@ def data_split_FeatLabel(df):
     y = df.label
     return X,y
 
-
+def fe_basic_features2(df):
+    df_fe_1 = df.copy()
+    df_fe_1.insert(0, 'accel_x', df_fe_1.acc_x + df_fe_1.grav_x)
+    df_fe_1.insert(1, 'accel_y', df_fe_1.acc_y + df_fe_1.grav_y)
+    df_fe_1.insert(2, 'accel_z', df_fe_1.acc_z + df_fe_1.grav_z)
+    df_fe_1.insert(3, 'accel_norm', np.sqrt(df_fe_1.accel_x**2 + df_fe_1.accel_y**2 + df_fe_1.accel_z**2))
+    df_fe_1 = df_fe_1.drop(["grav_x","grav_y","grav_z","or_x","or_y","or_z",'acc_x', 'acc_y', 'acc_z'], axis=1)
+    return df_fe_1
 
 def fe_basic_features(df):
     df_fe_1 = df.copy()
@@ -46,7 +63,7 @@ def fe_basic_features(df):
     df_fe_1.insert(1, 'accel_y', df_fe_1.acc_y + df_fe_1.grav_y)
     df_fe_1.insert(2, 'accel_z', df_fe_1.acc_z + df_fe_1.grav_z)
     df_fe_1.insert(3, 'accel_norm', np.sqrt(df_fe_1.accel_x**2 + df_fe_1.accel_y**2 + df_fe_1.accel_z**2))
-    df_fe_1 = df_fe_1.drop(['or_x', 'or_y', 'or_z', 'grav_x', 'grav_y', 'grav_z', 'acc_x', 'acc_y', 'acc_z'], axis=1)
+    df_fe_1 = df_fe_1.drop(['accel_x', 'accel_y', 'accel_z'], axis=1)
     return df_fe_1
 
 
@@ -135,9 +152,9 @@ def fe_segmentation(df):
 
 
 def pre_normalize_tanh(df):
-
     m = np.mean(df, axis=0) # array([16.25, 26.25])
     std = np.std(df, axis=0) # array([17.45530005, 22.18529919])
 
     data = 0.5 * (np.tanh(0.01 * ((df - m) / std)) + 1)
     return data
+

@@ -7,3 +7,4 @@ ephemeral
 .flutter-plugins
 
 **/*.csv
+/10_Model_Trials/datasets/*
