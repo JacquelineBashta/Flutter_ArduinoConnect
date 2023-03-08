@@ -8,3 +8,4 @@ ephemeral
 
 **/*.csv
 /10_Model_Trials/datasets/*
+.tf
