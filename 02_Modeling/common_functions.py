@@ -116,9 +116,10 @@ def fe_roll_features(df,k):
         feat_df.insert(j+1, f'{i}_rstd', feat_df[i].rolling(k).std())
         feat_df.insert(j+2, f'{i}_rmed', feat_df[i].rolling(k).median())
         #feat_df.insert(j+3, f'{i}_rskew', feat_df[i].rolling(k).skew())
-        #feat_df.insert(j+4, f'{i}_rmax', feat_df[i].rolling(k).max())
-        #feat_df.insert(j+5, f'{i}_rmin', feat_df[i].rolling(k).min())
-        #feat_df.insert(j+6, f'{i}_squared', feat_df[i]**2)
+        #feat_df.insert(j+4, f'{i}_squared', feat_df[i]**2)
+        #feat_df.insert(j+5, f'{i}_rmax', feat_df[i].rolling(k).max())
+        #feat_df.insert(j+6, f'{i}_rmin', feat_df[i].rolling(k).min())
+        
         j += 4 
 
     # Dropping all rows where the lag overlapped two different subjects/trials.
