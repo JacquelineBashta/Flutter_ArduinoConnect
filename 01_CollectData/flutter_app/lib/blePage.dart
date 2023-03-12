@@ -25,7 +25,9 @@ class _BluetoothPageState extends State<BluetoothPage>
   final flutterReactiveBle = FlutterReactiveBle();
   List<DiscoveredDevice> devicesFound = [];
 
-  bool debug = false ;
+  final bool _debug = true ;
+  bool _predict = false ;
+  bool _drinking = false;
 
   // Some state management stuff
   bool _connected = false;
@@ -65,7 +67,7 @@ class _BluetoothPageState extends State<BluetoothPage>
 
   // Machine learning Model
   late tfl.Interpreter _interpreter;
-  late List mlOutputs;
+  late double mlOutputs;
   late List<List<double>> inputList;
   int modelListLen = 100;
   int modelDataLen = 52;
@@ -99,6 +101,8 @@ class _BluetoothPageState extends State<BluetoothPage>
         setState(() {});
       });
     controller.repeat(reverse: false);
+
+    mlOutputs = 0;
 
     recordsNameList = [];
     csvName = "";
@@ -217,9 +221,6 @@ class _BluetoothPageState extends State<BluetoothPage>
         if (_record) {
 
           var dataRec = convertBleData2Int(data);
-          if(debug) {
-            detectHit(List<int>.from(dataRec.sublist(1, 4)));
-          }
 
           // check if the time index already exist
           final listIndex =
@@ -276,7 +277,7 @@ class _BluetoothPageState extends State<BluetoothPage>
             });
           }
 
-          if(debug) {
+          if(_debug && !_predict) {
             diTreDiController.update(
                 rotationX: (dataRec[1]).toDouble(),
                 rotationY: (dataRec[3]).toDouble(),
@@ -342,6 +343,15 @@ class _BluetoothPageState extends State<BluetoothPage>
     }
   }
 
+  void _predictModel() async{
+    setState(() {
+      _predict = !_predict;
+      if(_predict){
+        _recordData();
+      }
+    });
+  }
+
   Future<void> _displayTextInputDialog(BuildContext context) {
     return showDialog(
       context: context,
@@ -381,10 +391,6 @@ class _BluetoothPageState extends State<BluetoothPage>
       modelLoaded = true;
       print("Model Loaded $modelLoaded");
     }
-    // await Tflite.loadModel(
-    //     model: "assets/best_model_LSTM.tflite",
-    //     labels: "assets/labels.txt",
-    // );
   }
 
   prepareModel(List<int> inputData) async {
@@ -487,12 +493,19 @@ class _BluetoothPageState extends State<BluetoothPage>
 
     _interpreter.run(input, output);
 
-    if(output[0][0] >= 0.5) {
-      print("predict = $output");
-    }
     setState(() {
-      //mlOutputs = output!;
+      mlOutputs = output[0][0];
     });
+
+    if(mlOutputs >= 0.5) {
+      print("predict = $output");
+      _drinking = true;
+      Timer(const Duration(seconds: 3), () { // <-- Delay here
+        setState(() {
+          _drinking = false;
+        });
+      });
+    }
   }
 
 
@@ -500,15 +513,19 @@ class _BluetoothPageState extends State<BluetoothPage>
   Widget build(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
+      children: <Widget>[
+
         ElevatedButton.icon(
           onPressed: _startScan,
           icon: const Icon(Icons.search),
           label: const Text('Scan'),
         ),
+        const SizedBox(height: 10),
+
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: ElevatedButton.icon(
@@ -534,6 +551,16 @@ class _BluetoothPageState extends State<BluetoothPage>
                 label: const Text('Stop'),
               ),
             ),
+            const SizedBox(width: 10),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: ElevatedButton.icon(
+                onPressed: _predictModel,
+                icon: Icon(Icons.water_drop_outlined,
+                    color: _predict ? Colors.green : Colors.red),
+                label: const Text('Predict'),
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 10),
@@ -544,6 +571,7 @@ class _BluetoothPageState extends State<BluetoothPage>
               "Records will be saved at \n $savedFilePath"
             ),
         ),
+        const SizedBox(height: 10),
 
         FittedBox(
           fit: BoxFit.fitWidth,
@@ -568,7 +596,6 @@ class _BluetoothPageState extends State<BluetoothPage>
             },
           ),
         ),
-
         const SizedBox(height: 10),
 
         FittedBox(
@@ -593,7 +620,6 @@ class _BluetoothPageState extends State<BluetoothPage>
             },
           ),
         ),
-
         const SizedBox(height: 10),
 
         Expanded(
@@ -618,42 +644,56 @@ class _BluetoothPageState extends State<BluetoothPage>
                 .toList(),
           ), // And rest of them in ListView
         ),
-
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children:
-            <Widget>[
-          if (debug == true) ...[
-            Text(
-             '$elapsedMs',
-             style: TextStyle(backgroundColor: elapsedMs >30 ? elapsedMs >50 ? Colors.red : Colors.yellow : Colors.green,
-                 fontSize: 24),
-            ),
-            Text(
-             '$elapsedMs',
-             style: TextStyle(backgroundColor: elapsedMs >30 ? elapsedMs >50 ? Colors.red : Colors.yellow : Colors.green,
-                 fontSize: 24),
-            ),
-            SizedBox(
-              height: 150,
-              width: 150,
-              child:
-              DiTreDi(
-                figures: [
-                  Cube3D(1, vector.Vector3(0, 0, 0), color: _record ? Colors.lightBlueAccent : Colors.white10),
-                ],
-                config: const DiTreDiConfig(
-                  supportZIndex: false,
-                ),
-                controller: diTreDiController,
-              ),
-            ),
-          ]],
-        ),
-
         const SizedBox(height: 10),
+
         Expanded(
-          //flex: 2,
+          flex: 2,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children:
+              <Widget>[
+            if (_predict == true) ...[
+              Column(
+                children: [
+                  Image.asset(
+                    _drinking ? 'images/drink.gif':'images/nodrink.gif',
+                    width: 400,
+                    height: 400,
+                  ),
+                  if (!_drinking) ...[
+                  Text(
+                   '$mlOutputs',
+                   style: TextStyle(backgroundColor: mlOutputs >0.5 ?Colors.green : Colors.red,
+                       fontSize: 24),
+                  ),
+                ]],
+              ),
+            ],
+            if (_debug && !_predict) ...[
+              SizedBox(
+                height: 150,
+                width: 150,
+                child:
+                DiTreDi(
+                  figures: [
+                    Cube3D(1, vector.Vector3(0, 0, 0), color: _record ? Colors.lightBlueAccent : Colors.white10),
+                  ],
+                  config: const DiTreDiConfig(
+                    supportZIndex: false,
+                  ),
+                  controller: diTreDiController,
+                ),
+              ),
+            ]],
+          ),
+        ),
+        const SizedBox(height: 10),
+
+        if (_predict == false) ...[
+        Expanded(
+          flex: 2,
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: ListView(
@@ -663,7 +703,7 @@ class _BluetoothPageState extends State<BluetoothPage>
             ),
           ), // And rest of them in ListView
         ),
-      ],
+      ]],
     );
   }
 }

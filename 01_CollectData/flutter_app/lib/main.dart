@@ -5,7 +5,7 @@ import 'package:flow_draw/chartsPage.dart';
 
 void main() {
   runApp(MaterialApp(
-    title: 'Flow Draw',
+    title: 'HydraMe',
     theme: ThemeData(
       useMaterial3: true,
     ),
@@ -44,16 +44,16 @@ class _MyHomePageState extends State<MyHomePage> {
       builder: (context, constraints) {
         return Scaffold(
           appBar: AppBar(
-            title: Text("Flow Draw"),
+            title: const Text("HydraMe" , style: TextStyle(color: Colors.white),),
             centerTitle: true,
-            backgroundColor: Colors.orangeAccent[100],
+            backgroundColor: Colors.black87,
           ),
           body: Row(
             children: [
               SafeArea(
                 child: NavigationRail(
                   extended: constraints.maxWidth >= 1200,
-                  backgroundColor: Colors.orangeAccent[100],
+                  backgroundColor: Colors.black87,
                   destinations: const [
                     NavigationRailDestination(
                       icon: Icon(Icons.bluetooth),
