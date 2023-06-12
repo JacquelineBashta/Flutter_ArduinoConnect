@@ -1,8 +1,11 @@
-# Flutter_ArduinoConnect
+# Drink Pattern detection
+Detect drinking pattern via Smart wearable
+
+## Flutter_ArduinoConnect
 implementation of mobile app to be used to connect with Aurdino board via bluetooth
 
-## Enviroment setup
-### Arduino IDE
+### Enviroment setup
+#### Arduino IDE
 1. Install Aurduino IDE 2.0
         - provide access needed (Network)
 2. at the folder level of .\arduino_nicla
@@ -14,15 +17,15 @@ implementation of mobile app to be used to connect with Aurdino board via blueto
     - use location .\arduino_nicla\ as sketchbook location
 
 
-### Android IDE 
+#### Android IDE 
 tbd
 
-### Flutter App
+#### Flutter App
 tbd
 
-## Project Architecture
+### Project Architecture
 
-## Matrial used
+### Matrial used
 
 1. [Deep Learning Models for Human Activity Recognition](https://machinelearningmastery.com/deep-learning-models-for-human-activity-recognition/)
 2. [Use Early Stopping to Halt the Training of Neural Networks At the Right Time](https://machinelearningmastery.com/how-to-stop-training-deep-neural-networks-at-the-right-time-using-early-stopping/)
